@@ -1,15 +1,12 @@
-from enum import Enum
 import sys
+from enum import Enum
 
-from domainadaptation.models.alexnet import AlexNet
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
 
 from domainadaptation.data_provider import DomainGenerator
-
-import domainadaptation.models.alexnet
-from domainadaptation.models import AlexNet
+from domainadaptation.models import AlexNet, preprocess_input
 
 
 class Experiment:
@@ -36,7 +33,7 @@ class Experiment:
 
         if config["backbone"]["type"] == self.BackboneType.ALEXNET:
             self._backbone_class = AlexNet
-            self._preprocess_input = domainadaptation.models.alexnet.proprocess_input
+            self._preprocess_input = preprocess_input
         elif config["backbone"]["type"] == self.BackboneType.VGG16:
             self._backbone_class = keras.applications.vgg16.VGG16
             self._preprocess_input = keras.applications.vgg16.preprocess_input
@@ -74,8 +71,10 @@ class Experiment:
             num_non_trainable_layers = len(instance.layers) - self.config['backbone']['num_trainable_layers']
             for layer in instance.layers[:num_non_trainable_layers]:
                 layer.trainable = False
-        
-        if 'freeze_all_batchnorms' in self.config['backbone'] and self.config['backbone']['freeze_all_batchnorms'] == True:
+
+        if 'freeze_all_batchnorms' in self.config['backbone'] and \
+                self.config['backbone']['freeze_all_batchnorms'] is True:
+
             frozen_bn_cnt = 0
             for layer in instance.layers:
                 if 'BatchNormalization' in str(type(layer)):
