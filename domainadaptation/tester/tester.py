@@ -10,12 +10,8 @@ class Tester:
     def __init__(self):
         pass
 
-    def test(self,
-             model,
-             generator,
-             model_name='baseline',
-             tensorboard=False,
-             log_dir='../domainadaptation/logs'):
+    def test(self, model, generator, model_name='baseline', tensorboard=False, log_dir='../domainadaptation/logs'):
+
         if tensorboard:
             log_dir = os.path.join(log_dir,
                                    '{}_{}'.format(model_name, datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")))
