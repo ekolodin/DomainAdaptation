@@ -11,16 +11,16 @@ class SphericalKMeans:
         self.__centers, self.__prev_centers = None, None
         self.__labels = None
 
-    def fit_predict(self, X, init):
-        X = np.asarray(X, dtype=np.float32)         # [objects, dim]
-        init = np.asarray(init, dtype=np.float32)   # [centers, dim]
+    def fit_predict(self, x, init):
+        x = np.asarray(x, dtype=np.float32)  # [objects, dim]
+        init = np.asarray(init, dtype=np.float32)  # [centers, dim]
 
-        assert X.ndim == 2 and init.ndim == 2
-        assert X.shape[1] == init.shape[1]
+        assert x.ndim == 2 and init.ndim == 2
+        assert x.shape[1] == init.shape[1]
 
-        self.__X = X / (np.linalg.norm(X, axis=-1, keepdims=True) + self.__eps)
+        self.__X = x / (np.linalg.norm(x, axis=-1, keepdims=True) + self.__eps)
         self.__centers = init / (np.linalg.norm(init, axis=-1, keepdims=True) + self.__eps)
-        self.__labels = np.empty(len(X), dtype=np.int32)
+        self.__labels = np.empty(len(x), dtype=np.int32)
 
         convergence = False
         for _ in range(self.__max_iter):

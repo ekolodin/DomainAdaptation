@@ -1,6 +1,7 @@
+import sys
+
 import tensorflow as tf
 import tensorflow.keras as keras
-import sys
 
 
 def get_class(kls):
@@ -11,7 +12,7 @@ def get_class(kls):
     """
     parts = kls.split('.')
     module = ".".join(parts[:-1])
-    m = __import__( module )
+    m = __import__(module)
     for comp in parts[1:]:
         m = getattr(m, comp)
     return m
@@ -21,6 +22,7 @@ class DomainSpecificBatchNormalization(keras.layers.Layer):
     """
     This is a Domain-Specific Batch Normalization layer.
     """
+
     def __init__(self, domain_variable, bn_config):
         """
         :param domain_variable: This tf.Variable(dtype=bool) indicates if the layer is used in source or target mode
@@ -38,8 +40,10 @@ class DomainSpecificBatchNormalization(keras.layers.Layer):
                        false_fn=lambda: self.trg_bn(inputs))
 
 
-def make_batch_normalization_layers_domain_specific_and_set_regularization(model, domain_variable, copy_bnorm_weights=True,
-                                                                           kernel_regularizer=None, bias_regularizer=None):
+def make_batch_normalization_layers_domain_specific_and_set_regularization(model, domain_variable,
+                                                                           copy_bnorm_weights=True,
+                                                                           kernel_regularizer=None,
+                                                                           bias_regularizer=None):
     """
     This function replaces all BatchNormalization layers with DomainSpecificBatchNormalization layers.
     You have to manually change domain_variable in order to switch between source and target modes.
@@ -109,7 +113,8 @@ def make_batch_normalization_layers_domain_specific_and_set_regularization(model
 
         new_model.layers[layer_ix].trainable = model.layers[layer_ix].trainable
 
-    sys.stderr.write("Successfully set {} kernel_regularizers to {}.\n".format(kernel_regularizer_cnt, kernel_regularizer))
+    sys.stderr.write(
+        "Successfully set {} kernel_regularizers to {}.\n".format(kernel_regularizer_cnt, kernel_regularizer))
     sys.stderr.write("Successfully set {} bias_initializers to {}.\n".format(bias_regularizer_cnt, bias_regularizer))
 
     return new_model
