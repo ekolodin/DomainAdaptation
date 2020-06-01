@@ -1,12 +1,12 @@
+import os
+import sys
+import tqdm
+
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 import tensorflow.keras as keras
-import sys
-import os
 
 from domainadaptation.tester import Tester
-from domainadaptation.models import GradientReversal
 from domainadaptation.experiment import Experiment
 from domainadaptation.visualizer import Visualizer
 from domainadaptation.utils import get_features_and_labels
@@ -15,12 +15,12 @@ from domainadaptation.utils import SphericalKMeans, \
     make_batch_normalization_layers_domain_specific_and_set_regularization
 from domainadaptation.data_provider import LabeledDataset, MaskedGenerator
 
-from tqdm import trange
-import tqdm
-
 
 class CANExperiment(Experiment):
-    '''https://arxiv.org/abs/1901.00976'''
+    """
+    Contrastive Adaptation Network for Unsupervised Domain Adaptation
+    link: https://arxiv.org/abs/1901.00976
+    """
 
     def __init__(self, config):
         super().__init__(config)
@@ -53,7 +53,8 @@ class CANExperiment(Experiment):
                 backbone,
                 self.domain_variable,
                 kernel_regularizer=self.config.get("kernel_regularizer", None),
-                bias_regularizer=self.config.get("bias_regularizer", None))
+                bias_regularizer=self.config.get("bias_regularizer", None)
+            )
 
         fc = keras.layers.Dense(self.config['dataset']['classes'])(backbone.outputs[0])
         probs = keras.layers.Softmax(axis=-1)(fc)
@@ -121,12 +122,11 @@ class CANExperiment(Experiment):
 
         tester = Tester()
 
-        p = 0.
-
         self.learning_rate = tf.Variable(self.config['learning_rate'], dtype=tf.float32, trainable=False)
         optimizers = {
             'head': keras.optimizers.SGD(learning_rate=self.learning_rate, momentum=0.9),
-            'backbone': keras.optimizers.SGD(learning_rate=self._backbone_lr_multiplier * self.learning_rate, momentum=0.9)
+            'backbone': keras.optimizers.SGD(learning_rate=self._backbone_lr_multiplier * self.learning_rate,
+                                             momentum=0.9)
         }
 
         for i in range(self.config['CAN_steps']):
@@ -145,21 +145,19 @@ class CANExperiment(Experiment):
                 tester.test(test_model, source_test_generator)
                 self.__switch_batchnorm_mode('target')
                 tester.test(test_model, target_test_generator)
-                
+
         #  --- visualize features from the last layer of backbone ---
         source_masked_generator.set_mask(np.ones(len(source_labeled_dataset)))
         target_masked_generator.set_mask(np.ones(len(target_labeled_dataset)))
-        
+
         self.__switch_batchnorm_mode('source')
         source_features, source_labels = get_features_and_labels(backbone, iter(source_masked_generator), 100000)
         self.__switch_batchnorm_mode('target')
         target_features, target_labels = get_features_and_labels(backbone, iter(target_masked_generator), 100000)
-        
+
         visualizer = Visualizer(
-            embeddings=np.vstack((source_features,
-                                  target_features)),
-            labels=np.hstack((source_labels,
-                              target_labels)),
+            embeddings=np.vstack((source_features, target_features)),
+            labels=np.hstack((source_labels, target_labels)),
             domains=np.hstack((np.zeros(source_features.shape[0], dtype=int),
                                np.ones(target_features.shape[0], dtype=int))),
             **self.config['visualizer']
@@ -198,17 +196,17 @@ class CANExperiment(Experiment):
                 size=self.config['MAX_CLASSES_PER_BATCH'],
                 replace=False)
 
-            X_target, y_target = target_masked_generator.get_batch(classes_to_use_in_batch)
-            X_source, y_source = source_masked_generator.get_batch(classes_to_use_in_batch)
-            X_source_xentropy, y_source_xentropy = source_masked_generator.get_batch(classes_to_use_in_xentropy)
+            x_target, y_target = target_masked_generator.get_batch(classes_to_use_in_batch)
+            x_source, y_source = source_masked_generator.get_batch(classes_to_use_in_batch)
+            x_source_xentropy, y_source_xentropy = source_masked_generator.get_batch(classes_to_use_in_xentropy)
 
             with tf.GradientTape() as tape:
                 self.__switch_batchnorm_mode('source')
-                model_output_source = model(X_source)
-                model_output_source_xentropy = model(X_source_xentropy)
+                model_output_source = model(x_source)
+                model_output_source_xentropy = model(x_source_xentropy)
 
                 self.__switch_batchnorm_mode('target')
-                model_output_target = model(X_target)
+                model_output_target = model(x_target)
 
                 if model.losses:
                     regularization_loss = tf.math.add_n(model.losses)
@@ -362,7 +360,7 @@ class CANExperiment(Experiment):
         if intra:
             return tf.reduce_mean(e1s + e2s - 2 * e3s)
         else:
-            return (tf.reduce_sum((cls_num - 1) * (e1s + e2s)) \
+            return (tf.reduce_sum((cls_num - 1) * (e1s + e2s))
                     - 2 * tf.reduce_sum(e3s - tf.eye(cls_num) * e3s)) / (cls_num * (cls_num - 1))
 
     @staticmethod

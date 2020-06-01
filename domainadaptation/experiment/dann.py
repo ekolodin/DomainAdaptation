@@ -58,7 +58,7 @@ class DANNExperiment(Experiment):
             domain=1
         )
 
-        #  --- train dann model ---
+        #  --- train DANN model ---
         optimizer = keras.optimizers.Adam(learning_rate=self.config['learning_rate'])
         steps_per_epoch = len(source_generator)
 
@@ -92,7 +92,7 @@ class DANNExperiment(Experiment):
                         if train_domain_head:
                             print('classification loss: {}, domain_loss: {}'.format(classification_loss, domain_loss))
 
-        #  --- test dann model ---
+        #  --- test DANN model ---
         classification_model = keras.Model(
             inputs=dann_model.inputs,
             outputs=dann_model.outputs[0]
@@ -100,7 +100,7 @@ class DANNExperiment(Experiment):
 
         tester = Tester()
         tester.test(classification_model, source_generator)
-        
+
         target_generator = self.domain_generator.make_generator(
             domain=self.config["dataset"]["target"],
             batch_size=self.config["batch_size"],
@@ -108,17 +108,14 @@ class DANNExperiment(Experiment):
         )
         tester = Tester()
         tester.test(classification_model, target_generator)
-        
-        
+
         #  --- visualize features from the last layer of backbone ---
         source_features, source_labels = get_features_and_labels(backbone, source_generator, 50)
         target_features, target_labels = get_features_and_labels(backbone, target_generator, 50)
-        
+
         visualizer = Visualizer(
-            embeddings=np.vstack((source_features,
-                                  target_features)),
-            labels=np.hstack((source_labels,
-                              target_labels)),
+            embeddings=np.vstack((source_features, target_features)),
+            labels=np.hstack((source_labels, target_labels)),
             domains=np.hstack((np.zeros(source_features.shape[0], dtype=int),
                                np.ones(target_features.shape[0], dtype=int))),
             **self.config['visualizer']
