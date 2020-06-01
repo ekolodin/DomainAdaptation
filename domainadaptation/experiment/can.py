@@ -10,7 +10,8 @@ from domainadaptation.models import GradientReversal
 from domainadaptation.experiment import Experiment
 from domainadaptation.visualizer import Visualizer
 
-from domainadaptation.utils import SphericalKMeans, make_batch_normalization_layers_domain_specific_and_set_regularization
+from domainadaptation.utils import SphericalKMeans, \
+    make_batch_normalization_layers_domain_specific_and_set_regularization
 from domainadaptation.data_provider import LabeledDataset, MaskedGenerator
 
 from tqdm import trange
@@ -68,9 +69,9 @@ class CANExperiment(Experiment):
                 self.backbone_variables.append(var)
             else:
                 self.head_variables.append(var)
-                
+
         test_model = keras.Model(inputs=model.inputs, outputs=model.outputs[-1])
-        
+
         source_labeled_dataset = LabeledDataset(
             root=os.path.join(self.config["dataset"]["path"], self.config["dataset"]["source"]),
             # img_size=self.config["backbone"]["img_size"][0],
@@ -137,7 +138,7 @@ class CANExperiment(Experiment):
                 target_labeled_dataset=target_labeled_dataset,
                 target_masked_generator=target_masked_generator,
                 model=model, K=self.config['K'], optimizer=optimizers, p=p)
-            
+
             if i % self.config['validation_frequency'] == 0:
                 self.__switch_batchnorm_mode('source')
                 tester.test(test_model, source_test_generator)
@@ -291,7 +292,7 @@ class CANExperiment(Experiment):
             bandwidth = fixed_sigma
         else:
             bandwidth = tf.reduce_mean(l2_distance)
-            
+
         bandwidth /= kernel_mul ** (kernel_num // 2)
         bandwidth_list = bandwidth * (kernel_mul ** tf.range(0, kernel_num, dtype=tf.float32))
         kernel_val = tf.reduce_mean(tf.math.exp(-l2_distance[..., None] / bandwidth_list), -1)
