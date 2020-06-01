@@ -59,7 +59,8 @@ class MaskedGenerator:
         if self.preprocess_input is not None:
             x_batch = self.preprocess_input(x_batch)
 
-        x_batch, y_batch = tf.convert_to_tensor(x_batch, dtype=tf.float32), tf.convert_to_tensor(y_batch, dtype=tf.int32)
+        x_batch, y_batch = tf.convert_to_tensor(x_batch, dtype=tf.float32), tf.convert_to_tensor(y_batch,
+                                                                                                 dtype=tf.int32)
 
         if self.flip_horizontal:
             x_batch = tf.image.random_flip_left_right(x_batch)
